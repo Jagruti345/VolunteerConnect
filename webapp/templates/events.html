@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Volunteer Opportunities - VolunteerConnect{% endblock %}
+{% block content %}
+
+<section>
+  <div class="container">
+    <div class="section-head">
+      <div>
+        <h2>Volunteer Opportunities</h2>
+        <p class="section-sub">{{ events|length }} campaign(s) match your search</p>
+      </div>
+    </div>
+
+    <form method="get" class="filter-bar">
+      <input type="text" name="q" value="{{ q }}" placeholder="Search by keyword or location...">
+      <select name="category">
+        <option value="all" {% if category == 'all' %}selected{% endif %}>All Categories</option>
+        {% for c in categories %}
+        <option value="{{ c }}" {% if category == c %}selected{% endif %}>{{ c }}</option>
+        {% endfor %}
+      </select>
+      <button type="submit" class="btn btn-primary btn-small">Search</button>
+    </form>
+
+    {% if events %}
+    <div class="card-grid">
+      {% for e in events %}
+      <div class="event-card">
+        <span class="badge">{{ e.category }}</span>
+        <h3>{{ e.title }}</h3>
+        <p class="event-meta">
+          <span>&#128197; {{ e.event_date }}</span>
+          <span>&#128205; {{ e.location }}</span>
+          <span>&#128101; Organized by {{ e.organizer }}</span>
+        </p>
+        {% set seats_left = e.seats - e.registered %}
+        <span class="seats-tag {% if seats_left <= 0 %}full{% elif seats_left <= 5 %}low{% endif %}">
+          {% if seats_left <= 0 %}Fully booked{% else %}{{ seats_left }} seats left{% endif %}
+        </span>
+        <a href="{{ url_for('event_detail', event_id=e.id) }}" class="btn btn-primary btn-small">View & Register</a>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+      <p>No campaigns match that search. Try a different keyword or category.</p>
+    </div>
+    {% endif %}
+  </div>
+</section>
+
+{% endblock %}

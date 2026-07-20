@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}NGO Dashboard - VolunteerConnect{% endblock %}
+{% block content %}
+
+<section>
+  <div class="container">
+    <div class="section-head">
+      <div>
+        <h2>NGO Dashboard</h2>
+        <p class="section-sub">{{ totals.events }} event(s) &middot; {{ totals.registrations }} total registrations</p>
+      </div>
+      <a href="{{ url_for('admin_new_event') }}" class="btn btn-accent">+ Post New Event</a>
+    </div>
+
+    {% if events %}
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Event</th>
+            <th>Category</th>
+            <th>Date</th>
+            <th>Location</th>
+            <th>Seats</th>
+            <th>Registered</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for e in events %}
+          <tr>
+            <td>{{ e.title }}</td>
+            <td>{{ e.category }}</td>
+            <td>{{ e.event_date }}</td>
+            <td>{{ e.location }}</td>
+            <td>{{ e.seats }}</td>
+            <td><strong>{{ e.registered }}</strong></td>
+            <td>
+              <div class="row-actions">
+                <a href="{{ url_for('admin_event_volunteers', event_id=e.id) }}" class="btn btn-outline btn-small">Volunteers</a>
+                <a href="{{ url_for('admin_edit_event', event_id=e.id) }}" class="btn btn-outline btn-small">Edit</a>
+                <form method="post" action="{{ url_for('admin_delete_event', event_id=e.id) }}"
+                      data-confirm="Delete '{{ e.title }}' and all its registrations? This can't be undone.">
+                  <button type="submit" class="btn btn-danger btn-small">Delete</button>
+                </form>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+      <p>You haven't posted any events yet.</p>
+      <a href="{{ url_for('admin_new_event') }}" class="btn btn-primary" style="margin-top: 16px;">Post Your First Event</a>
+    </div>
+    {% endif %}
+  </div>
+</section>
+
+{% endblock %}

@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}{% if editing %}Edit Event{% else %}Post New Event{% endif %} - VolunteerConnect{% endblock %}
+{% block content %}
+
+<section>
+  <div class="container">
+    <h2 style="margin-bottom: 24px;">{% if editing %}Edit Event{% else %}Post a New Volunteer Opportunity{% endif %}</h2>
+
+    <form method="post" class="form-card">
+      <div class="field">
+        <label>Event Title</label>
+        <input type="text" name="title" value="{{ form.title or '' }}" required>
+      </div>
+
+      <div class="form-row">
+        <div class="field">
+          <label>Category</label>
+          <select name="category" required>
+            <option value="">Select a category</option>
+            {% for c in categories %}
+            <option value="{{ c }}" {% if form.category == c %}selected{% endif %}>{{ c }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="field">
+          <label>Event Date</label>
+          <input type="date" name="event_date" value="{{ form.event_date or '' }}" required>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Description</label>
+        <textarea name="description" rows="4" required>{{ form.description or '' }}</textarea>
+      </div>
+
+      <div class="form-row">
+        <div class="field">
+          <label>Location</label>
+          <input type="text" name="location" value="{{ form.location or '' }}" required>
+        </div>
+        <div class="field">
+          <label>Volunteer Seats</label>
+          <input type="number" name="seats" min="1" value="{{ form.seats or 10 }}" required>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Organizer Name</label>
+        <input type="text" name="organizer" value="{{ form.organizer or '' }}" required>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-block">
+        {% if editing %}Save Changes{% else %}Publish Event{% endif %}
+      </button>
+    </form>
+  </div>
+</section>
+
+{% endblock %}

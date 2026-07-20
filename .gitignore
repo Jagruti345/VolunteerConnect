@@ -1,0 +1,6 @@
+.env
+*.pem
+logs/
+webapp/data/
+__pycache__/
+*.pyc

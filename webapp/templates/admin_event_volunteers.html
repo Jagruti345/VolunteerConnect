@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}Volunteers for {{ event.title }} - VolunteerConnect{% endblock %}
+{% block content %}
+
+<section>
+  <div class="container">
+    <div class="section-head">
+      <div>
+        <h2>Volunteers for "{{ event.title }}"</h2>
+        <p class="section-sub">{{ volunteers|length }} of {{ event.seats }} seats filled</p>
+      </div>
+      <div class="row-actions">
+        <a href="{{ url_for('admin_export_volunteers', event_id=event.id) }}" class="btn btn-outline btn-small">Export CSV</a>
+        <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline btn-small">Back to Dashboard</a>
+      </div>
+    </div>
+
+    {% if volunteers %}
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Age</th>
+            <th>Skills</th>
+            <th>Location</th>
+            <th>Registered At</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for v in volunteers %}
+          <tr>
+            <td>{{ v.name }}</td>
+            <td>{{ v.email }}</td>
+            <td>{{ v.phone }}</td>
+            <td>{{ v.age or '-' }}</td>
+            <td>{{ v.skills or '-' }}</td>
+            <td>{{ v.location or '-' }}</td>
+            <td>{{ v.created_at[:16] }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+      <p>No one has registered for this event yet.</p>
+    </div>
+    {% endif %}
+  </div>
+</section>
+
+{% endblock %}

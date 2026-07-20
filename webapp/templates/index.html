@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}VolunteerConnect - NGO & Volunteer Collaboration Platform{% endblock %}
+{% block content %}
+
+<section class="hero">
+  <div class="container">
+    <h1>Connecting Volunteers with NGOs<br>to Build Better Communities</h1>
+    <p class="lead">Browse real volunteering opportunities posted directly by verified NGOs,
+      and register in under a minute.</p>
+    <div class="hero-actions">
+      <a href="{{ url_for('events') }}" class="btn btn-primary">Browse Opportunities</a>
+      <a href="{{ url_for('admin_login') }}" class="btn btn-outline">I'm an NGO</a>
+    </div>
+  </div>
+</section>
+
+<section class="stats">
+  <div class="container stats-grid">
+    <div><span class="stat-number">{{ stats.registrations }}</span><span class="stat-label">Volunteer Registrations</span></div>
+    <div><span class="stat-number">{{ stats.volunteers }}</span><span class="stat-label">Volunteers</span></div>
+    <div><span class="stat-number">{{ stats.events }}</span><span class="stat-label">Active Campaigns</span></div>
+    <div><span class="stat-number">{{ stats.ngos }}</span><span class="stat-label">NGO Partners</span></div>
+  </div>
+</section>
+
+<section>
+  <div class="container">
+    <div class="section-head">
+      <div>
+        <h2>Upcoming Opportunities</h2>
+        <p class="section-sub">Fresh campaigns from our NGO partners</p>
+      </div>
+      <a href="{{ url_for('events') }}" class="btn btn-outline btn-small">View all</a>
+    </div>
+
+    {% if events %}
+    <div class="card-grid">
+      {% for e in events %}
+      <div class="event-card">
+        <span class="badge">{{ e.category }}</span>
+        <h3>{{ e.title }}</h3>
+        <p class="event-meta">
+          <span>&#128197; {{ e.event_date }}</span>
+          <span>&#128205; {{ e.location }}</span>
+          <span>&#128101; Organized by {{ e.organizer }}</span>
+        </p>
+        {% set seats_left = e.seats - e.registered %}
+        <span class="seats-tag {% if seats_left <= 0 %}full{% elif seats_left <= 5 %}low{% endif %}">
+          {% if seats_left <= 0 %}Fully booked{% else %}{{ seats_left }} seats left{% endif %}
+        </span>
+        <a href="{{ url_for('event_detail', event_id=e.id) }}" class="btn btn-primary btn-small">View & Register</a>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+      <p>No campaigns posted yet. Check back soon, or if you're an NGO, <a href="{{ url_for('admin_login') }}">log in to post the first one</a>.</p>
+    </div>
+    {% endif %}
+  </div>
+</section>
+
+{% endblock %}

@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}VolunteerConnect{% endblock %}</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<header class="navbar">
+  <div class="container nav-inner">
+    <a href="{{ url_for('home') }}" class="logo">Volunteer<span>Connect</span></a>
+    <button id="navToggle" class="icon-btn nav-toggle" aria-label="Menu">&#9776;</button>
+    <nav>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="{{ url_for('home') }}">Home</a></li>
+        <li><a href="{{ url_for('events') }}">Opportunities</a></li>
+        {% if session.get('is_admin') %}
+        <li><a href="{{ url_for('admin_dashboard') }}">NGO Dashboard</a></li>
+        <li><a href="{{ url_for('admin_logout') }}">Logout</a></li>
+        {% else %}
+        <li><a href="{{ url_for('admin_login') }}" class="btn btn-outline btn-small">NGO Login</a></li>
+        {% endif %}
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<main>
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="flash-container container">
+        {% for category, message in messages %}
+          <div class="flash flash-{{ category }}">{{ message }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  {% block content %}{% endblock %}
+</main>
+
+<footer class="footer">
+  <div class="container">
+    <p>&copy; 2026 VolunteerConnect &mdash; Connecting NGOs with volunteers to build better communities.</p>
+  </div>
+</footer>
+
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

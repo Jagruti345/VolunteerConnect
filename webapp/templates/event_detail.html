@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}{{ event.title }} - VolunteerConnect{% endblock %}
+{% block content %}
+
+<section>
+  <div class="container event-detail-grid">
+    <div>
+      <span class="badge">{{ event.category }}</span>
+      <h1 style="margin: 14px 0;">{{ event.title }}</h1>
+      <p style="color: var(--muted); white-space: pre-line;">{{ event.description }}</p>
+    </div>
+
+    <div class="detail-panel">
+      <h4>Campaign Details</h4>
+      <div class="stat-line"><span>Date</span><strong>{{ event.event_date }}</strong></div>
+      <div class="stat-line"><span>Location</span><strong>{{ event.location }}</strong></div>
+      <div class="stat-line"><span>Organizer</span><strong>{{ event.organizer }}</strong></div>
+      <div class="stat-line"><span>Registered</span><strong>{{ registered_count }} / {{ event.seats }}</strong></div>
+      <div class="stat-line"><span>Seats left</span><strong>{{ seats_left }}</strong></div>
+
+      {% if seats_left > 0 %}
+      <h4 style="margin-top: 24px;">Register as a Volunteer</h4>
+      <form method="post">
+        <div class="form-row">
+          <div class="field"><label>Full Name</label><input type="text" name="name" required></div>
+          <div class="field"><label>Email</label><input type="email" name="email" required></div>
+        </div>
+        <div class="form-row">
+          <div class="field"><label>Phone</label><input type="tel" name="phone" required></div>
+          <div class="field"><label>Age</label><input type="number" name="age" min="16"></div>
+        </div>
+        <div class="field"><label>Skills</label><input type="text" name="skills" placeholder="e.g. teaching, first aid"></div>
+        <div class="field"><label>Your Location</label><input type="text" name="location"></div>
+        <button type="submit" class="btn btn-primary btn-block">Register for this Event</button>
+      </form>
+      {% else %}
+      <p style="margin-top: 20px; color: var(--error); font-weight: 600;">This event is fully booked.</p>
+      {% endif %}
+    </div>
+  </div>
+</section>
+
+{% endblock %}
