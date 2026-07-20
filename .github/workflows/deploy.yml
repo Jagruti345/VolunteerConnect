@@ -15,45 +15,57 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Setup SSH Key
+      - name: Create SSH Directory
+        run: mkdir -p ~/.ssh
+
+      - name: Install Private Key
         shell: bash
         run: |
-          mkdir -p ~/.ssh
-
-          printf "%s" "${{ secrets.EC2_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          cat > ~/.ssh/id_rsa << 'EOF'
+          ${{ secrets.EC2_PRIVATE_KEY }}
+          EOF
 
           chmod 600 ~/.ssh/id_rsa
 
-          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
-
-      - name: Verify SSH Key
+      - name: Verify Private Key
         run: |
+          echo "Checking key..."
           ls -la ~/.ssh
           file ~/.ssh/id_rsa
           ssh-keygen -lf ~/.ssh/id_rsa
 
-      - name: Test SSH Connection
+      - name: Add EC2 Host
         run: |
-          ssh \
-            -i ~/.ssh/id_rsa \
-            -o BatchMode=yes \
-            -o StrictHostKeyChecking=no \
-            ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} \
-            "echo Connected Successfully"
+          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
 
-      - name: Deploy Application
+      - name: Test SSH
         run: |
           ssh \
             -i ~/.ssh/id_rsa \
-            -o BatchMode=yes \
             -o StrictHostKeyChecking=no \
+            -o UserKnownHostsFile=/dev/null \
+            -o BatchMode=yes \
+            ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} \
+            "echo SSH Connected"
+
+      - name: Deploy Website
+        run: |
+          ssh \
+            -i ~/.ssh/id_rsa \
+            -o StrictHostKeyChecking=no \
+            -o UserKnownHostsFile=/dev/null \
             ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} << 'EOF'
 
           set -e
 
           cd /opt/volunteerconnect
 
+          echo "Current Directory:"
+          pwd
+
+          echo "Fetching latest code..."
           git fetch origin
+
           git reset --hard origin/main
 
           source venv/bin/activate
@@ -64,10 +76,13 @@ jobs:
 
           sudo systemctl status volunteerconnect --no-pager
 
-          echo "Deployment Successful"
+          echo "Deployment Completed"
 
           EOF
 
       - name: Verify Website
         run: |
           curl http://${{ secrets.EC2_HOST }} || true
+
+      - name: Done
+        run: echo "CI/CD Finished Successfully"
