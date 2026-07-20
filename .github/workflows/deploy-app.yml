@@ -30,8 +30,8 @@ jobs:
 
       - name: Sync webapp code to S3
         run: |
-          aws s3 sync webapp/ "s3://${{ secrets.BUCKET_NAME }}" \
-            --delete --exclude "data/*"
+          "aws s3 sync s3://$BUCKET /opt/volunteerconnect --delete --exclude 'data/*' --exclude 'venv/*'",
+          "test -x ./venv/bin/pip || python3 -m venv venv",
 
       - name: Find the running EC2 instance
         id: instance
