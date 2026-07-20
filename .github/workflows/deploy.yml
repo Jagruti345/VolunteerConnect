@@ -1,0 +1,57 @@
+name: VolunteerConnect CI/CD
+
+on:
+  push:
+    branches:
+      - main
+
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    env:
+      AWS_REGION: ${{ secrets.AWS_REGION }}
+      AMI_ID: ${{ secrets.AMI_ID }}
+      INSTANCE_TYPE: ${{ secrets.INSTANCE_TYPE }}
+      BUCKET_NAME: ${{ secrets.BUCKET_NAME }}
+      ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
+      SECRET_KEY: ${{ secrets.SECRET_KEY }}
+      SES_SENDER_EMAIL: ${{ secrets.SES_SENDER_EMAIL }}
+      SES_RECIPIENT_EMAIL: ${{ secrets.SES_RECIPIENT_EMAIL }}
+      ENABLE_PHASE4: ${{ secrets.ENABLE_PHASE4 }}
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Python Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Verify AWS Connection
+        run: |
+          aws --version
+          aws sts get-caller-identity
+
+      - name: Run VolunteerConnect Provisioning
+        run: |
+          python provision.py
+
+      - name: Deployment Completed
+        run: |
+          echo "VolunteerConnect deployment completed successfully."
