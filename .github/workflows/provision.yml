@@ -1,0 +1,65 @@
+name: Provision Infrastructure
+
+# Runs the full python provision.py - creates/reuses IAM, security group,
+# key pair, S3 bucket, and EC2 instance from scratch. Use this for the
+# first deploy, or whenever you change infrastructure (instance type,
+# region, a new AWS resource, etc). For routine app/template/CSS changes,
+# use "Deploy App Update (SSM)" instead - it's much faster and doesn't
+# touch EC2/IAM/security groups at all.
+#
+# Manually triggered on purpose - infra changes shouldn't fire on every
+# push the way app deploys do.
+#
+# Required GitHub repo secrets (Settings -> Secrets and variables -> Actions):
+#   AWS_ACCESS_KEY_ID
+#   AWS_SECRET_ACCESS_KEY
+#   AWS_REGION            (e.g. ap-south-1)
+#   BUCKET_NAME
+#   ADMIN_PASSWORD        (real NGO login password)
+#   SECRET_KEY            (random string for signing session cookies)
+#
+# Optional (only used if the ENABLE_PHASE4 repo variable is set to "true"):
+#   SES_SENDER_EMAIL
+#   SES_RECIPIENT_EMAIL
+
+on:
+  workflow_dispatch: {}
+
+jobs:
+  provision:
+    runs-on: ubuntu-latest
+    environment: production   # optional: add manual-approval protection in repo settings
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install provisioning dependencies
+        run: pip install -r requirements.txt
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Run provision.py
+        env:
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+          BUCKET_NAME: ${{ secrets.BUCKET_NAME }}
+          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
+          SECRET_KEY: ${{ secrets.SECRET_KEY }}
+          ENABLE_PHASE4: ${{ vars.ENABLE_PHASE4 || 'false' }}
+          SES_SENDER_EMAIL: ${{ secrets.SES_SENDER_EMAIL }}
+          SES_RECIPIENT_EMAIL: ${{ secrets.SES_RECIPIENT_EMAIL }}
+        run: python provision.py
+
+      - name: Show deployment log
+        if: always()
+        run: cat logs/deployment.log

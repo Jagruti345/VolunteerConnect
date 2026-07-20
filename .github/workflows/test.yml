@@ -1,0 +1,65 @@
+name: Test
+
+# Runs on every push and pull request. Nothing here touches AWS - it just
+# proves the app actually starts up and its core routes work. deploy-app.yml
+# and provision.yml both assume this passes; they don't re-run it themselves.
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  smoke-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install webapp dependencies
+        working-directory: webapp
+        run: pip install -r requirements.txt
+
+      - name: Syntax-check every Python file
+        run: python -m py_compile provision.py config.py modules/*.py webapp/app.py
+
+      - name: Smoke test - core app flow
+        working-directory: webapp
+        env:
+          ADMIN_PASSWORD: ci-test-password
+          SECRET_KEY: ci-test-secret
+        run: |
+          python -c "
+          import app as a
+          client = a.app.test_client()
+
+          r = client.get('/')
+          assert r.status_code == 200, 'home page did not load'
+
+          r = client.post('/admin/login', data={'password': 'ci-test-password'}, follow_redirects=True)
+          assert b'NGO Dashboard' in r.data, 'admin login failed'
+
+          r = client.post('/admin/events/new', data={
+              'title': 'CI Test Event', 'category': 'Teaching',
+              'description': 'test', 'location': 'Test City',
+              'event_date': '2026-12-01', 'seats': '5', 'organizer': 'CI Bot'
+          }, follow_redirects=True)
+          assert b'CI Test Event' in r.data, 'event creation failed'
+
+          r = client.post('/events/1', data={
+              'name': 'Test Volunteer', 'email': 'test@example.com', 'phone': '9999999999'
+          }, follow_redirects=True)
+          assert b'registered' in r.data.lower(), 'volunteer registration failed'
+
+          r = client.get('/admin/events/1/volunteers')
+          assert b'Test Volunteer' in r.data, 'admin could not see registrant'
+
+          print('All smoke tests passed.')
+          "
